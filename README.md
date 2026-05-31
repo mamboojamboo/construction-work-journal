@@ -99,6 +99,8 @@ Editing uses the same `WorkLogForm` with existing record values passed as defaul
 
 Deleting is handled through a confirmation dialog opened from the table row action. The dialog shows the selected record summary, calls the Orval-generated delete mutation, invalidates the work log list, and confirms the result with toast notifications.
 
+Summary cards are calculated from the currently loaded work log records and work type dictionary. They show total records, available work types, latest performed date, and total quantity for the current selection. Filters and table empty states handle active filters and invalid date ranges explicitly.
+
 Orval reads `http://localhost:3000/api/docs-json` and writes generated types, request functions, and TanStack Query hooks to `apps/web/src/shared/api/generated/work-journal-api.ts`. The OpenAPI document describes paths relative to the `/api` server, so the generated client works with `VITE_API_URL=http://localhost:3000/api`.
 
 The API uses Prisma for typed database access. The current database schema contains a `WorkType` dictionary table, a `WorkLog` table, and a `Unit` enum. Work logs reference work types by foreign key instead of storing duplicated work type names.

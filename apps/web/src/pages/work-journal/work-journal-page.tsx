@@ -27,9 +27,17 @@ export function WorkJournalPage() {
     setFilters,
     toggleSortOrder,
   } = useWorkJournalSearch();
-  const workLogsQuery = useGetWorkLogs(queryParams);
+  const isInvalidDateRange = Boolean(
+    filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo,
+  );
+  const workLogsQuery = useGetWorkLogs(queryParams, {
+    query: {
+      enabled: !isInvalidDateRange,
+    },
+  });
   const workTypesQuery = useGetWorkTypes();
-  const workLogs = workLogsQuery.data?.items ?? [];
+  const workLogs = isInvalidDateRange ? [] : (workLogsQuery.data?.items ?? []);
+  const total = isInvalidDateRange ? 0 : (workLogsQuery.data?.total ?? 0);
 
   const handleEdit = useCallback((record: WorkLogResponseDto) => {
     setEditedWorkLog(record);
@@ -71,10 +79,20 @@ export function WorkJournalPage() {
         />
       </section>
 
-      <WorkLogSummary />
+      <WorkLogSummary
+        isInvalidDateRange={isInvalidDateRange}
+        isWorkLogsError={workLogsQuery.isError}
+        isWorkLogsLoading={workLogsQuery.isLoading}
+        isWorkTypesError={workTypesQuery.isError}
+        isWorkTypesLoading={workTypesQuery.isLoading}
+        records={workLogs}
+        total={total}
+        workTypes={workTypesQuery.data ?? []}
+      />
       <WorkLogFilters
         filters={filters}
         hasActiveFilters={hasActiveFilters}
+        isInvalidDateRange={isInvalidDateRange}
         isWorkTypesError={workTypesQuery.isError}
         isWorkTypesLoading={workTypesQuery.isLoading}
         onFiltersChange={setFilters}
@@ -82,7 +100,9 @@ export function WorkJournalPage() {
         workTypes={workTypesQuery.data ?? []}
       />
       <WorkLogTable
+        hasActiveFilters={hasActiveFilters}
         isError={workLogsQuery.isError}
+        isInvalidDateRange={isInvalidDateRange}
         isLoading={workLogsQuery.isLoading}
         onDelete={handleDelete}
         onEdit={handleEdit}
@@ -90,7 +110,7 @@ export function WorkJournalPage() {
         onToggleSortOrder={toggleSortOrder}
         records={workLogs}
         sortOrder={filters.sortOrder}
-        total={workLogsQuery.data?.total ?? 0}
+        total={total}
       />
       <EditWorkLogDialog
         isWorkTypesError={workTypesQuery.isError}

@@ -15,7 +15,15 @@ const workLogFormSchema = z.object({
   performedAt: z.string().min(1, "Укажите дату выполнения работ."),
   workTypeId: z.string().min(1, "Выберите вид работ."),
   quantity: z.preprocess(
-    (value) => (value === "" ? undefined : Number(value)),
+    (value) => {
+      if (value === "") {
+        return undefined;
+      }
+
+      const parsedValue = Number(value);
+
+      return Number.isFinite(parsedValue) ? parsedValue : undefined;
+    },
     z
       .number({ message: "Укажите объем работ." })
       .positive("Объем должен быть больше 0."),

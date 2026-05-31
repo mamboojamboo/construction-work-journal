@@ -24,6 +24,7 @@ type WorkLogFiltersProps = {
   workTypes: WorkTypeResponseDto[];
   isWorkTypesLoading: boolean;
   isWorkTypesError: boolean;
+  isInvalidDateRange: boolean;
   hasActiveFilters: boolean;
   onFiltersChange: (filters: Partial<WorkJournalFilters>) => void;
   onReset: () => void;
@@ -34,6 +35,7 @@ export function WorkLogFilters({
   workTypes,
   isWorkTypesLoading,
   isWorkTypesError,
+  isInvalidDateRange,
   hasActiveFilters,
   onFiltersChange,
   onReset,
@@ -74,8 +76,7 @@ export function WorkLogFilters({
               id={field.id}
               onInput={(event) =>
                 onFiltersChange({
-                  [field.id]:
-                    event.currentTarget.value || undefined,
+                  [field.id]: event.currentTarget.value || undefined,
                 })
               }
               type={field.type}
@@ -126,6 +127,12 @@ export function WorkLogFilters({
           />
         </label>
       </div>
+
+      {isInvalidDateRange ? (
+        <p className="mt-3 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          Дата начала не может быть позже даты окончания.
+        </p>
+      ) : null}
     </section>
   );
 }

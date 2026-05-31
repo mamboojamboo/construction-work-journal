@@ -24,8 +24,10 @@ import { Button } from "@/shared/ui/button";
 type WorkLogTableProps = {
   records: WorkLogResponseDto[];
   total: number;
+  hasActiveFilters: boolean;
   isLoading: boolean;
   isError: boolean;
+  isInvalidDateRange: boolean;
   sortOrder: GetWorkLogsSortOrder;
   onDelete: (record: WorkLogResponseDto) => void;
   onEdit: (record: WorkLogResponseDto) => void;
@@ -106,8 +108,10 @@ function getColumns(
 export function WorkLogTable({
   records,
   total,
+  hasActiveFilters,
   isLoading,
   isError,
+  isInvalidDateRange,
   sortOrder,
   onDelete,
   onEdit,
@@ -123,6 +127,7 @@ export function WorkLogTable({
   const subtitle = isLoading
     ? "Загружаем записи журнала."
     : `${formatQuantity(total)} записей в текущей выборке.`;
+  const emptyState = getEmptyState(isInvalidDateRange, hasActiveFilters);
   const sortLabel =
     sortOrder === GetWorkLogsSortOrder.desc
       ? "Сначала новые"
@@ -141,7 +146,7 @@ export function WorkLogTable({
           </div>
         </div>
         <Button
-          disabled={isLoading}
+          disabled={isLoading || isInvalidDateRange}
           onClick={onToggleSortOrder}
           title="Переключить сортировку по дате"
           type="button"
@@ -226,9 +231,9 @@ export function WorkLogTable({
                     <div className="mx-auto flex size-11 items-center justify-center rounded-md bg-secondary text-muted-foreground">
                       <MoreHorizontal className="size-5" aria-hidden="true" />
                     </div>
-                    <p className="mt-4 font-medium">Записей пока нет</p>
+                    <p className="mt-4 font-medium">{emptyState.title}</p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Создайте первую запись или измените параметры фильтра.
+                      {emptyState.description}
                     </p>
                   </div>
                 </td>
@@ -239,6 +244,27 @@ export function WorkLogTable({
       </div>
     </section>
   );
+}
+
+function getEmptyState(isInvalidDateRange: boolean, hasActiveFilters: boolean) {
+  if (isInvalidDateRange) {
+    return {
+      title: "Некорректный диапазон дат",
+      description: "Дата начала не может быть позже даты окончания.",
+    };
+  }
+
+  if (hasActiveFilters) {
+    return {
+      title: "Ничего не найдено",
+      description: "Измените фильтры или сбросьте параметры выборки.",
+    };
+  }
+
+  return {
+    title: "Записей пока нет",
+    description: "Создайте первую запись или измените параметры фильтра.",
+  };
 }
 
 function LoadingRows({ colSpan }: { colSpan: number }) {
