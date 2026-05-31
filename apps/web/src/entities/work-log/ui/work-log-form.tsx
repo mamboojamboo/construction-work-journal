@@ -11,42 +11,55 @@ import type {
 } from "@/shared/api/generated/work-journal-api";
 import { Button } from "@/shared/ui/button";
 
-const workLogFormSchema = z.object({
-  performedAt: z.string().min(1, "Укажите дату выполнения работ."),
-  workTypeId: z.string().min(1, "Выберите вид работ."),
-  quantity: z.preprocess(
-    (value) => {
-      if (value === "") {
-        return undefined;
+function createWorkLogFormSchema(maxPerformedAt?: string) {
+  return z
+    .object({
+      performedAt: z.string().min(1, "Укажите дату выполнения работ."),
+      workTypeId: z.string().min(1, "Выберите вид работ."),
+      quantity: z.preprocess(
+        (value) => {
+          if (value === "") {
+            return undefined;
+          }
+
+          const parsedValue = Number(value);
+
+          return Number.isFinite(parsedValue) ? parsedValue : undefined;
+        },
+        z
+          .number({ message: "Укажите объем работ." })
+          .positive("Объем должен быть больше 0."),
+      ),
+      performer: z
+        .string()
+        .trim()
+        .min(2, "Укажите ФИО исполнителя минимум из 2 символов.")
+        .max(160, "ФИО исполнителя не должно быть длиннее 160 символов."),
+      comment: z
+        .string()
+        .trim()
+        .max(1000, "Комментарий не должен быть длиннее 1000 символов.")
+        .optional()
+        .or(z.literal("")),
+    })
+    .superRefine((values, context) => {
+      if (maxPerformedAt && values.performedAt > maxPerformedAt) {
+        context.addIssue({
+          code: "custom",
+          message: "Дата выполнения не может быть позже текущей даты.",
+          path: ["performedAt"],
+        });
       }
+    });
+}
 
-      const parsedValue = Number(value);
-
-      return Number.isFinite(parsedValue) ? parsedValue : undefined;
-    },
-    z
-      .number({ message: "Укажите объем работ." })
-      .positive("Объем должен быть больше 0."),
-  ),
-  performer: z
-    .string()
-    .trim()
-    .min(2, "Укажите ФИО исполнителя минимум из 2 символов.")
-    .max(160, "ФИО исполнителя не должно быть длиннее 160 символов."),
-  comment: z
-    .string()
-    .trim()
-    .max(1000, "Комментарий не должен быть длиннее 1000 символов.")
-    .optional()
-    .or(z.literal("")),
-});
-
-type WorkLogFormValues = z.output<typeof workLogFormSchema>;
-type WorkLogFormInput = z.input<typeof workLogFormSchema>;
+type WorkLogFormValues = z.output<ReturnType<typeof createWorkLogFormSchema>>;
+type WorkLogFormInput = z.input<ReturnType<typeof createWorkLogFormSchema>>;
 
 type WorkLogFormProps = {
   defaultValues?: Partial<WorkLogFormInput>;
   isSubmitting: boolean;
+  maxPerformedAt?: string;
   submitLabel: string;
   workTypes: WorkTypeResponseDto[];
   onCancel: () => void;
@@ -64,11 +77,16 @@ const emptyValues: WorkLogFormInput = {
 export function WorkLogForm({
   defaultValues,
   isSubmitting,
+  maxPerformedAt,
   submitLabel,
   workTypes,
   onCancel,
   onSubmit,
 }: WorkLogFormProps) {
+  const validationSchema = useMemo(
+    () => createWorkLogFormSchema(maxPerformedAt),
+    [maxPerformedAt],
+  );
   const {
     formState: { errors },
     handleSubmit,
@@ -79,7 +97,7 @@ export function WorkLogForm({
       ...emptyValues,
       ...defaultValues,
     },
-    resolver: zodResolver(workLogFormSchema),
+    resolver: zodResolver(validationSchema),
   });
 
   const selectedWorkTypeId = watch("workTypeId");
@@ -102,9 +120,14 @@ export function WorkLogForm({
       )}
     >
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Дата выполнения" message={errors.performedAt?.message}>
+        <Field
+          hint={maxPerformedAt ? "Нельзя выбрать дату в будущем" : undefined}
+          label="Дата выполнения"
+          message={errors.performedAt?.message}
+        >
           <input
             className={inputClassName}
+            max={maxPerformedAt}
             type="date"
             {...register("performedAt")}
           />

@@ -1,14 +1,69 @@
 # Construction Work Journal
 
-A fullstack internal tool for tracking completed construction works on a job site.
+A fullstack internal tool for construction site supervisors to track completed daily work on a job site.
 
-This repository is organized as a pnpm workspace with a separate Vite React frontend and NestJS API.
+The application supports viewing, filtering, sorting, creating, editing, and deleting work log records. Work types are stored as a PostgreSQL-backed dictionary and are selected from the frontend rather than entered as free text.
+
+## Features
+
+- Work log table with performed date, work type, quantity, unit, performer, optional comment, and row actions.
+- Date range filtering and date sorting.
+- Additional filtering by work type and performer.
+- Create, edit, and delete flows backed by API mutations.
+- Delete confirmation dialog.
+- Work type dictionary loaded from the database.
+- Loading, error, empty, validation, disabled submit, and toast states.
+- URL-backed filters and sort order.
+- Swagger/OpenAPI contract exposed by the backend.
+- Orval-generated frontend API client and TanStack Query hooks.
+- PostgreSQL persistence through Prisma.
+- One-command Docker Compose setup.
 
 ## Stack
 
-- Frontend: React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Query, TanStack Table, React Hook Form, Zod, Orval, Axios, date-fns.
-- Backend: Node.js, NestJS, TypeScript, Prisma, PostgreSQL, Swagger/OpenAPI, class-validator, class-transformer.
-- Infrastructure: Docker, Docker Compose, pnpm workspaces, ESLint, Prettier.
+Frontend:
+
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui-style primitives with Radix UI
+- TanStack Query
+- TanStack Table
+- React Hook Form
+- Zod
+- Orval
+- Axios
+- date-fns
+
+Backend:
+
+- Node.js
+- NestJS
+- TypeScript
+- Prisma
+- PostgreSQL
+- Swagger/OpenAPI
+- class-validator
+- class-transformer
+
+Infrastructure:
+
+- Docker
+- Docker Compose
+- pnpm workspaces
+- ESLint
+- Prettier
+
+## Why This Stack
+
+React + Vite fits the task because the application is an internal CRUD tool with no SSR or SEO requirement. A separate NestJS API keeps the client/server boundary explicit and gives the backend a clear module, DTO, validation, and Swagger structure.
+
+PostgreSQL is used as a production-like relational database. Prisma provides typed database access, migrations, and a concise model for the work type dictionary and work log records.
+
+The frontend API layer is generated with Orval from the NestJS Swagger document. This keeps request/response types and TanStack Query hooks aligned with the backend contract without manually duplicating API types in the frontend.
+
+Server state is handled by TanStack Query. Local UI state stays close to the components: dialogs, selected records, URL filters, table sorting, and form state. Forms use React Hook Form and Zod for user-friendly client-side validation, while backend validation remains in NestJS DTOs and the global ValidationPipe.
 
 ## Repository Structure
 
@@ -16,7 +71,10 @@ This repository is organized as a pnpm workspace with a separate Vite React fron
 construction-work-journal/
 ├── apps/
 │   ├── api/
+│   │   ├── prisma/
+│   │   └── src/
 │   └── web/
+│       └── src/
 ├── docker-compose.yml
 ├── package.json
 ├── pnpm-workspace.yaml
@@ -24,99 +82,255 @@ construction-work-journal/
 └── .env.example
 ```
 
-## Setup
+Frontend structure follows a practical feature-based layout:
 
-Run the full application with Docker Compose:
+```txt
+apps/web/src/
+├── app/
+├── pages/
+├── widgets/
+├── features/
+├── entities/
+└── shared/
+```
+
+Backend structure uses NestJS feature modules:
+
+```txt
+apps/api/src/
+├── prisma/
+├── work-logs/
+└── work-types/
+```
+
+## Run With Docker
+
+Start the full application:
 
 ```bash
 docker compose up --build
 ```
 
-Docker URLs:
+URLs:
 
 - Web app: <http://localhost:5173>
-- API: <http://localhost:3000/api>
+- API base: <http://localhost:3000/api>
 - Swagger UI: <http://localhost:3000/api/docs>
+- OpenAPI JSON: <http://localhost:3000/api/docs-json>
 
-The API container waits for PostgreSQL, runs Prisma migrations, seeds the work type dictionary, and then starts the NestJS server. PostgreSQL is available inside the Docker network as `postgres:5432`.
+Docker Compose starts three services:
 
-Install workspace dependencies:
+- `postgres`: PostgreSQL 16, available inside the Docker network as `postgres:5432`.
+- `api`: NestJS API. On startup it runs `prisma migrate deploy`, `prisma db seed`, then starts `node dist/src/main.js`.
+- `web`: Vite static build served by Nginx on host port `5173`.
+
+PostgreSQL is not exposed to the host by default; the app containers communicate over the internal Compose network.
+
+Stop the stack:
+
+```bash
+docker compose down
+```
+
+## Run Locally
+
+Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-Run the API in development mode:
+Provide a local PostgreSQL database that matches `DATABASE_URL`. One option is a standalone Docker container:
 
 ```bash
-pnpm dev:api
+docker run --name cwj-postgres-local \
+  -e POSTGRES_DB=construction_work_journal \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  -d postgres:16-alpine
 ```
 
-Run the frontend in development mode:
-
-```bash
-pnpm dev:web
-```
-
-Frontend URL:
-
-- Web app: <http://localhost:5173>
-
-API URLs:
-
-- Health: <http://localhost:3000/api/health>
-- Work types: <http://localhost:3000/api/work-types>
-- Work logs: <http://localhost:3000/api/work-logs>
-- Swagger UI: <http://localhost:3000/api/docs>
-- OpenAPI JSON: <http://localhost:3000/api/docs-json>
-
-For local development without Dockerized API/Web, provide a PostgreSQL database matching `DATABASE_URL`, then apply migrations and seed work types:
+Apply migrations and seed work types:
 
 ```bash
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/construction_work_journal pnpm --filter api prisma:deploy
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/construction_work_journal pnpm --filter api db:seed
 ```
 
-Generate the frontend API client from the backend OpenAPI schema:
+Start the API:
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/construction_work_journal pnpm dev:api
+```
+
+Start the frontend in another terminal:
+
+```bash
+pnpm dev:web
+```
+
+Local URLs are the same as Docker:
+
+- Web app: <http://localhost:5173>
+- API: <http://localhost:3000/api>
+- Swagger UI: <http://localhost:3000/api/docs>
+
+## Environment Variables
+
+Root `.env.example`:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/construction_work_journal
+POSTGRES_DB=construction_work_journal
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+
+API_PORT=3000
+WEB_PORT=5173
+
+VITE_API_URL=http://localhost:3000/api
+```
+
+Docker Compose overrides the API database URL internally:
+
+```txt
+postgresql://postgres:postgres@postgres:5432/construction_work_journal
+```
+
+## API Contract Generation
+
+The backend OpenAPI schema is the source of truth for frontend API types and hooks:
+
+```txt
+NestJS DTOs
+→ Swagger/OpenAPI at /api/docs-json
+→ Orval
+→ generated Axios + TanStack Query client
+→ UI
+```
+
+Generate the frontend API client after the API is running:
 
 ```bash
 pnpm --filter web api:generate
 ```
 
-## Architecture Notes
+Generated output:
 
-The frontend and backend are intentionally separate applications. The backend OpenAPI schema will be the source of truth for frontend API types and TanStack Query hooks via Orval.
+```txt
+apps/web/src/shared/api/generated/work-journal-api.ts
+```
 
-The frontend is a Vite React application under `apps/web`. It uses a practical feature-based folder structure with `app`, `pages`, `widgets`, `features`, `entities`, and `shared` layers. `AppProviders` wires TanStack Query and the toast provider around the application. The shared Axios instance reads `VITE_API_URL` and exposes `customInstance` for Orval.
+The generated file is committed so the frontend can typecheck and build without regenerating during every install. If backend DTOs or operation names change, rerun Orval.
 
-The Work Journal page composes `AppLayout`, page header actions, `WorkLogSummary`, `WorkLogFilters`, and `WorkLogTable`. `WorkLogFilters` keeps `dateFrom`, `dateTo`, `workTypeId`, and `performer` in URL search params, then passes them to the Orval-generated `useGetWorkLogs` hook. `WorkLogTable` uses TanStack Table for rendering and controls server-side `performedAt` sorting through the same URL-driven flow.
+## API Endpoints
 
-Creating a work log is handled by a feature-level dialog that reuses `WorkLogForm`. The form uses React Hook Form with a Zod schema for client-side validation, loads the work type dictionary from the API, shows the selected unit near the quantity field, and submits through the Orval-generated create mutation. Successful creation invalidates the work log list query and shows a toast notification.
+Health:
 
-Editing uses the same `WorkLogForm` with existing record values passed as defaults. Row actions in the table open a controlled edit dialog, submit changes through the Orval-generated update mutation, invalidate the work log list, and show success or error toasts.
+```txt
+GET /api/health
+```
 
-Deleting is handled through a confirmation dialog opened from the table row action. The dialog shows the selected record summary, calls the Orval-generated delete mutation, invalidates the work log list, and confirms the result with toast notifications.
+Work types:
 
-Summary cards are calculated from the currently loaded work log records and work type dictionary. They show total records, available work types, latest performed date, and total quantity for the current selection. Filters and table empty states handle active filters and invalid date ranges explicitly.
+```txt
+GET /api/work-types
+```
 
-Docker Compose defines three services: PostgreSQL, the NestJS API, and the Nginx-served Vite frontend. The API image builds the Nest app and starts with `prisma migrate deploy`, `prisma db seed`, and `node dist/main.js`. The frontend image builds static assets with `VITE_API_URL` and serves them on port `80` inside the container, mapped to `WEB_PORT` on the host.
+Work logs:
 
-Orval reads `http://localhost:3000/api/docs-json` and writes generated types, request functions, and TanStack Query hooks to `apps/web/src/shared/api/generated/work-journal-api.ts`. The OpenAPI document describes paths relative to the `/api` server, so the generated client works with `VITE_API_URL=http://localhost:3000/api`.
+```txt
+GET    /api/work-logs
+POST   /api/work-logs
+PATCH  /api/work-logs/:id
+DELETE /api/work-logs/:id
+```
 
-The API uses Prisma for typed database access. The current database schema contains a `WorkType` dictionary table, a `WorkLog` table, and a `Unit` enum. Work logs reference work types by foreign key instead of storing duplicated work type names.
+Supported `GET /api/work-logs` query params:
 
-The work type dictionary is exposed through `GET /api/work-types`. The endpoint reads from PostgreSQL through Prisma and returns `id`, `name`, and `unit` for each seeded work type.
+```txt
+dateFrom?: string
+dateTo?: string
+workTypeId?: string
+performer?: string
+sortBy?: "performedAt"
+sortOrder?: "asc" | "desc"
+```
 
-Work logs are exposed through:
+Create request body:
 
-- `GET /api/work-logs`
-- `POST /api/work-logs`
-- `PATCH /api/work-logs/:id`
-- `DELETE /api/work-logs/:id`
+```json
+{
+  "performedAt": "2026-05-30",
+  "workTypeId": "uuid",
+  "quantity": 24,
+  "performer": "Иванов Иван Иванович",
+  "comment": "Работы выполнены на секции А"
+}
+```
 
-`GET /api/work-logs` supports `dateFrom`, `dateTo`, `workTypeId`, `performer`, `sortBy=performedAt`, and `sortOrder=asc|desc`. The list response shape is `{ items, total }`, and each work log includes the related work type dictionary entry.
+Update request body is partial:
+
+```json
+{
+  "quantity": 28,
+  "comment": "Скорректированный объем"
+}
+```
+
+## Database Schema
+
+Prisma models:
+
+```txt
+Unit
+- M2
+- M3
+- M
+- PCS
+- HOUR
+- TON
+
+WorkType
+- id
+- name
+- unit
+- createdAt
+- updatedAt
+
+WorkLog
+- id
+- performedAt
+- quantity
+- performer
+- comment
+- workTypeId
+- createdAt
+- updatedAt
+```
+
+Important schema details:
+
+- Work logs reference `WorkType` through `workTypeId`.
+- Work logs do not duplicate the work type name.
+- `quantity` uses a decimal column with precision.
+- `performedAt` and `workTypeId` are indexed.
+
+Seeded work types:
+
+- Кладка перегородок — M2
+- Монтаж опалубки — M2
+- Бетонирование — M3
+- Монтаж арматуры — TON
+- Штукатурные работы — M2
+- Установка дверей — PCS
+- Прокладка кабеля — M
+- Покраска стен — M2
 
 ## Useful Scripts
+
+Root:
 
 ```bash
 pnpm dev
@@ -126,6 +340,56 @@ pnpm build
 pnpm lint
 pnpm format
 pnpm typecheck
-pnpm --filter web api:generate
 docker compose up --build
+docker compose down
 ```
+
+API:
+
+```bash
+pnpm --filter api prisma:generate
+pnpm --filter api prisma:deploy
+pnpm --filter api db:seed
+```
+
+Web:
+
+```bash
+pnpm --filter web api:generate
+```
+
+## Validation
+
+Backend validation:
+
+- NestJS DTOs
+- `class-validator`
+- `class-transformer`
+- global `ValidationPipe` with whitelist, forbidden non-whitelisted fields, and transform enabled
+
+Frontend validation:
+
+- React Hook Form
+- Zod schema in the reusable `WorkLogForm`
+- required date, work type, quantity, and performer fields
+- positive quantity validation
+- optional comment validation
+
+## Known Trade-Offs
+
+- The frontend has a single route because the product scope is one focused internal tool.
+- The table does not implement pagination; current API returns the filtered list and total for the assignment scale.
+- Summary cards are calculated from the currently loaded list rather than a separate aggregate endpoint.
+- PostgreSQL is internal-only in Docker Compose. Local development needs a separately exposed database.
+- Authentication, authorization, projects, photos, uploads, and audit trails are intentionally out of scope.
+- The production frontend image embeds `VITE_API_URL` at build time, which is normal for Vite but means API URL changes require rebuilding the web image.
+
+## Possible Improvements
+
+- Add pagination or cursor-based loading for large journals.
+- Add backend aggregate endpoints for summaries.
+- Add automated frontend tests for create/edit/delete flows.
+- Add API e2e tests against a test database.
+- Add CI checks for lint, typecheck, build, migrations, and Orval generation drift.
+- Add Docker image size optimizations and non-root runtime users.
+- Add authentication and per-site permissions if the product scope grows.

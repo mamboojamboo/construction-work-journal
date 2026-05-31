@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +36,7 @@ export function EditWorkLogDialog({
   workTypes,
   onOpenChange,
 }: EditWorkLogDialogProps) {
+  const today = format(new Date(), "yyyy-MM-dd");
   const queryClient = useQueryClient();
   const updateWorkLogMutation = useUpdateWorkLog({
     mutation: {
@@ -101,6 +103,7 @@ export function EditWorkLogDialog({
               workTypeId: record.workTypeId,
             }}
             isSubmitting={updateWorkLogMutation.isPending}
+            maxPerformedAt={today}
             onCancel={() => onOpenChange(false)}
             onSubmit={handleSubmit}
             submitLabel="Сохранить изменения"

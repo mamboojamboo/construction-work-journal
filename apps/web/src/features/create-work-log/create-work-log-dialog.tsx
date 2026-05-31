@@ -33,6 +33,7 @@ export function CreateWorkLogDialog({
   workTypes,
 }: CreateWorkLogDialogProps) {
   const [open, setOpen] = useState(false);
+  const today = format(new Date(), "yyyy-MM-dd");
   const queryClient = useQueryClient();
   const createWorkLogMutation = useCreateWorkLog({
     mutation: {
@@ -90,8 +91,9 @@ export function CreateWorkLogDialog({
 
         {!isWorkTypesLoading && !isWorkTypesError ? (
           <WorkLogForm
-            defaultValues={{ performedAt: format(new Date(), "yyyy-MM-dd") }}
+            defaultValues={{ performedAt: today }}
             isSubmitting={createWorkLogMutation.isPending}
+            maxPerformedAt={today}
             onCancel={() => setOpen(false)}
             onSubmit={handleSubmit}
             submitLabel="Добавить запись"
