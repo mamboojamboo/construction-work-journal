@@ -1,10 +1,8 @@
-import { Plus } from "lucide-react";
-
+import { CreateWorkLogDialog } from "@/features/create-work-log/create-work-log-dialog";
 import {
   useGetWorkLogs,
   useGetWorkTypes,
 } from "@/shared/api/generated/work-journal-api";
-import { Button } from "@/shared/ui/button";
 import { WorkLogFilters } from "@/widgets/work-log-filters/work-log-filters";
 import { WorkLogSummary } from "@/widgets/work-log-summary/work-log-summary";
 import { WorkLogTable } from "@/widgets/work-log-table/work-log-table";
@@ -36,10 +34,11 @@ export function WorkJournalPage() {
             объем, единица измерения, исполнитель и комментарий прораба.
           </p>
         </div>
-        <Button disabled title="Добавление записи">
-          <Plus aria-hidden="true" />
-          Добавить запись
-        </Button>
+        <CreateWorkLogDialog
+          isWorkTypesError={workTypesQuery.isError}
+          isWorkTypesLoading={workTypesQuery.isLoading}
+          workTypes={workTypesQuery.data ?? []}
+        />
       </section>
 
       <WorkLogSummary />
