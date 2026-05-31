@@ -91,7 +91,7 @@ The frontend and backend are intentionally separate applications. The backend Op
 
 The frontend is a Vite React application under `apps/web`. It uses a practical feature-based folder structure with `app`, `pages`, `widgets`, `features`, `entities`, and `shared` layers. `AppProviders` wires TanStack Query and the toast provider around the application. The shared Axios instance reads `VITE_API_URL` and exposes `customInstance` for Orval.
 
-The Work Journal page currently composes `AppLayout`, page header actions, `WorkLogSummary`, `WorkLogFilters`, and `WorkLogTable`. The widgets are placeholders for the next data-connected steps, but they use the same layout surface and control positions expected in the final CRUD interface.
+The Work Journal page composes `AppLayout`, page header actions, `WorkLogSummary`, `WorkLogFilters`, and `WorkLogTable`. `WorkLogTable` uses TanStack Table and the Orval-generated `useGetWorkLogs` hook to render the current work log records. Filtering and interactive sorting will be connected in the next step.
 
 Orval reads `http://localhost:3000/api/docs-json` and writes generated types, request functions, and TanStack Query hooks to `apps/web/src/shared/api/generated/work-journal-api.ts`. The OpenAPI document describes paths relative to the `/api` server, so the generated client works with `VITE_API_URL=http://localhost:3000/api`.
 
