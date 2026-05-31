@@ -2,7 +2,7 @@
 
 A fullstack internal tool for tracking completed construction works on a job site.
 
-This repository is organized as a pnpm workspace with a separate Vite React frontend and NestJS API. The implementation will be built incrementally according to the assignment brief.
+This repository is organized as a pnpm workspace with a separate Vite React frontend and NestJS API.
 
 ## Planned Stack
 
@@ -43,6 +43,7 @@ pnpm dev:api
 API URLs:
 
 - Health: <http://localhost:3000/api/health>
+- Work types: <http://localhost:3000/api/work-types>
 - Swagger UI: <http://localhost:3000/api/docs>
 - OpenAPI JSON: <http://localhost:3000/api/docs-json>
 
@@ -72,6 +73,8 @@ Use the same port in `DATABASE_URL` that Docker Compose exposes locally.
 The frontend and backend are intentionally separate applications. The backend OpenAPI schema will be the source of truth for frontend API types and TanStack Query hooks via Orval.
 
 The API uses Prisma for typed database access. The current database schema contains a `WorkType` dictionary table, a `WorkLog` table, and a `Unit` enum. Work logs reference work types by foreign key instead of storing duplicated work type names.
+
+The work type dictionary is exposed through `GET /api/work-types`. The endpoint reads from PostgreSQL through Prisma and returns `id`, `name`, and `unit` for each seeded work type.
 
 ## Useful Scripts
 
