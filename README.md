@@ -44,6 +44,7 @@ API URLs:
 
 - Health: <http://localhost:3000/api/health>
 - Work types: <http://localhost:3000/api/work-types>
+- Work logs: <http://localhost:3000/api/work-logs>
 - Swagger UI: <http://localhost:3000/api/docs>
 - OpenAPI JSON: <http://localhost:3000/api/docs-json>
 
@@ -75,6 +76,15 @@ The frontend and backend are intentionally separate applications. The backend Op
 The API uses Prisma for typed database access. The current database schema contains a `WorkType` dictionary table, a `WorkLog` table, and a `Unit` enum. Work logs reference work types by foreign key instead of storing duplicated work type names.
 
 The work type dictionary is exposed through `GET /api/work-types`. The endpoint reads from PostgreSQL through Prisma and returns `id`, `name`, and `unit` for each seeded work type.
+
+Work logs are exposed through:
+
+- `GET /api/work-logs`
+- `POST /api/work-logs`
+- `PATCH /api/work-logs/:id`
+- `DELETE /api/work-logs/:id`
+
+`GET /api/work-logs` supports `dateFrom`, `dateTo`, `workTypeId`, `performer`, `sortBy=performedAt`, and `sortOrder=asc|desc`. The list response shape is `{ items, total }`, and each work log includes the related work type dictionary entry.
 
 ## Useful Scripts
 
