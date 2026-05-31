@@ -26,13 +26,25 @@ construction-work-journal/
 
 ## Setup
 
+Run the full application with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+Docker URLs:
+
+- Web app: <http://localhost:5173>
+- API: <http://localhost:3000/api>
+- Swagger UI: <http://localhost:3000/api/docs>
+
+The API container waits for PostgreSQL, runs Prisma migrations, seeds the work type dictionary, and then starts the NestJS server. PostgreSQL is available inside the Docker network as `postgres:5432`.
+
 Install workspace dependencies:
 
 ```bash
 pnpm install
 ```
-
-Application-specific setup commands will be added as the API, frontend, database, and Docker configuration are implemented.
 
 Run the API in development mode:
 
@@ -58,26 +70,12 @@ API URLs:
 - Swagger UI: <http://localhost:3000/api/docs>
 - OpenAPI JSON: <http://localhost:3000/api/docs-json>
 
-Start PostgreSQL with Docker Compose:
-
-```bash
-docker compose up -d postgres
-```
-
-If local port `5432` is already in use, override it:
-
-```bash
-POSTGRES_PORT=5433 docker compose up -d postgres
-```
-
-Apply database migrations and seed work types:
+For local development without Dockerized API/Web, provide a PostgreSQL database matching `DATABASE_URL`, then apply migrations and seed work types:
 
 ```bash
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/construction_work_journal pnpm --filter api prisma:deploy
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/construction_work_journal pnpm --filter api db:seed
 ```
-
-Use the same port in `DATABASE_URL` that Docker Compose exposes locally.
 
 Generate the frontend API client from the backend OpenAPI schema:
 
@@ -100,6 +98,8 @@ Editing uses the same `WorkLogForm` with existing record values passed as defaul
 Deleting is handled through a confirmation dialog opened from the table row action. The dialog shows the selected record summary, calls the Orval-generated delete mutation, invalidates the work log list, and confirms the result with toast notifications.
 
 Summary cards are calculated from the currently loaded work log records and work type dictionary. They show total records, available work types, latest performed date, and total quantity for the current selection. Filters and table empty states handle active filters and invalid date ranges explicitly.
+
+Docker Compose defines three services: PostgreSQL, the NestJS API, and the Nginx-served Vite frontend. The API image builds the Nest app and starts with `prisma migrate deploy`, `prisma db seed`, and `node dist/main.js`. The frontend image builds static assets with `VITE_API_URL` and serves them on port `80` inside the container, mapped to `WEB_PORT` on the host.
 
 Orval reads `http://localhost:3000/api/docs-json` and writes generated types, request functions, and TanStack Query hooks to `apps/web/src/shared/api/generated/work-journal-api.ts`. The OpenAPI document describes paths relative to the `/api` server, so the generated client works with `VITE_API_URL=http://localhost:3000/api`.
 
@@ -127,4 +127,5 @@ pnpm lint
 pnpm format
 pnpm typecheck
 pnpm --filter web api:generate
+docker compose up --build
 ```
