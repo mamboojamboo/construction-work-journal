@@ -6,7 +6,7 @@ This repository is organized as a pnpm workspace with a separate Vite React fron
 
 ## Status
 
-Step 1 is complete: the monorepo skeleton is initialized.
+Step 2 is complete: the monorepo skeleton and minimal NestJS API are initialized.
 
 ## Planned Stack
 
@@ -37,6 +37,18 @@ pnpm install
 ```
 
 Application-specific setup commands will be added as the API, frontend, database, and Docker configuration are implemented.
+
+Run the API in development mode:
+
+```bash
+pnpm dev:api
+```
+
+API URLs:
+
+- Health: <http://localhost:3000/api/health>
+- Swagger UI: <http://localhost:3000/api/docs>
+- OpenAPI JSON: <http://localhost:3000/api/docs-json>
 
 ## Architecture Notes
 
