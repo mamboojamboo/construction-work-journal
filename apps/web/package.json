@@ -1,0 +1,12 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Web app will be initialized in Step 6\"",
+    "build": "echo \"Web build will be added in Step 6\"",
+    "lint": "echo \"Web linting will be configured with the Vite app\"",
+    "format": "echo \"Web formatting will be configured with the Vite app\"",
+    "typecheck": "echo \"Web typecheck will be configured with the Vite app\""
+  }
+}

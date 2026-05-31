@@ -1,0 +1,12 @@
+{
+  "name": "api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"API app will be initialized in Step 2\"",
+    "build": "echo \"API build will be added in Step 2\"",
+    "lint": "echo \"API linting will be configured with the NestJS app\"",
+    "format": "echo \"API formatting will be configured with the NestJS app\"",
+    "typecheck": "echo \"API typecheck will be configured with the NestJS app\""
+  }
+}
