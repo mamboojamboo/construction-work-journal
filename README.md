@@ -2,7 +2,7 @@
 
 A fullstack internal tool for construction site supervisors to track completed daily work on a job site.
 
-![Preview](./docs/preview.png)
+![Preview](./docs/img/preview.png)
 
 The application supports viewing, filtering, sorting, creating, editing, and deleting work log records. Work types are stored as a PostgreSQL-backed dictionary and are selected from the frontend rather than entered as free text.
 
