@@ -1,71 +1,74 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { AlertTriangle, Loader2, Plus } from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { WorkLogForm } from "@/entities/work-log/ui/work-log-form";
 import {
-  useCreateWorkLog,
+  useUpdateWorkLog,
   type CreateWorkLogDto,
+  type WorkLogResponseDto,
   type WorkTypeResponseDto,
 } from "@/shared/api/generated/work-journal-api";
 import { getApiErrorMessage } from "@/shared/api/get-api-error-message";
-import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/shared/ui/dialog";
 
-type CreateWorkLogDialogProps = {
+type EditWorkLogDialogProps = {
   isWorkTypesError: boolean;
   isWorkTypesLoading: boolean;
+  open: boolean;
+  record: WorkLogResponseDto | null;
   workTypes: WorkTypeResponseDto[];
+  onOpenChange: (open: boolean) => void;
 };
 
-export function CreateWorkLogDialog({
+export function EditWorkLogDialog({
   isWorkTypesError,
   isWorkTypesLoading,
+  open,
+  record,
   workTypes,
-}: CreateWorkLogDialogProps) {
-  const [open, setOpen] = useState(false);
+  onOpenChange,
+}: EditWorkLogDialogProps) {
   const queryClient = useQueryClient();
-  const createWorkLogMutation = useCreateWorkLog({
+  const updateWorkLogMutation = useUpdateWorkLog({
     mutation: {
       onError: (error) => {
-        toast.error("Не удалось создать запись", {
+        toast.error("Не удалось обновить запись", {
           description: getApiErrorMessage(error),
         });
       },
       onSuccess: async () => {
         await queryClient.invalidateQueries({ queryKey: ["/work-logs"] });
-        setOpen(false);
-        toast.success("Запись добавлена");
+        onOpenChange(false);
+        toast.success("Запись обновлена");
       },
     },
   });
 
   const handleSubmit = (values: CreateWorkLogDto) => {
-    createWorkLogMutation.mutate({ data: values });
+    if (!record) {
+      return;
+    }
+
+    updateWorkLogMutation.mutate({
+      id: record.id,
+      data: values,
+    });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button title="Добавление записи">
-          <Plus aria-hidden="true" />
-          Добавить запись
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Новая запись в журнале</DialogTitle>
+          <DialogTitle>Редактирование записи</DialogTitle>
           <DialogDescription>
-            Дневная фиксация выполненных строительных работ на участке.
+            Измените данные выполненных работ и сохраните обновление в журнале.
           </DialogDescription>
         </DialogHeader>
 
@@ -83,18 +86,24 @@ export function CreateWorkLogDialog({
               Не удалось загрузить виды работ
             </div>
             <p className="mt-2 text-destructive/80">
-              Без справочника нельзя выбрать вид работ для новой записи.
+              Без справочника нельзя корректно изменить вид работ.
             </p>
           </div>
         ) : null}
 
-        {!isWorkTypesLoading && !isWorkTypesError ? (
+        {record && !isWorkTypesLoading && !isWorkTypesError ? (
           <WorkLogForm
-            defaultValues={{ performedAt: format(new Date(), "yyyy-MM-dd") }}
-            isSubmitting={createWorkLogMutation.isPending}
-            onCancel={() => setOpen(false)}
+            defaultValues={{
+              comment: record.comment ?? "",
+              performedAt: record.performedAt.slice(0, 10),
+              performer: record.performer,
+              quantity: record.quantity,
+              workTypeId: record.workTypeId,
+            }}
+            isSubmitting={updateWorkLogMutation.isPending}
+            onCancel={() => onOpenChange(false)}
             onSubmit={handleSubmit}
-            submitLabel="Добавить запись"
+            submitLabel="Сохранить изменения"
             workTypes={workTypes}
           />
         ) : null}

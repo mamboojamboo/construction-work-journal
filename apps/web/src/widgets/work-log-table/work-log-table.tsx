@@ -27,61 +27,72 @@ type WorkLogTableProps = {
   isLoading: boolean;
   isError: boolean;
   sortOrder: GetWorkLogsSortOrder;
+  onEdit: (record: WorkLogResponseDto) => void;
   onRetry: () => void;
   onToggleSortOrder: () => void;
 };
 
-const columns: ColumnDef<WorkLogResponseDto>[] = [
-  {
-    accessorKey: "performedAt",
-    header: "Дата",
-    cell: ({ row }) => formatDate(row.original.performedAt),
-  },
-  {
-    accessorFn: (row) => row.workType.name,
-    id: "workType",
-    header: "Вид работ",
-    cell: ({ row }) => row.original.workType.name,
-  },
-  {
-    accessorKey: "quantity",
-    header: "Количество",
-    cell: ({ row }) => formatQuantity(row.original.quantity),
-  },
-  {
-    accessorFn: (row) => row.workType.unit,
-    id: "unit",
-    header: "Ед.",
-    cell: ({ row }) => row.original.workType.unit,
-  },
-  {
-    accessorKey: "performer",
-    header: "Исполнитель",
-  },
-  {
-    accessorKey: "comment",
-    header: "Комментарий",
-    cell: ({ row }) => (
-      <span className="line-clamp-2 text-sm text-muted-foreground">
-        {row.original.comment || "—"}
-      </span>
-    ),
-  },
-  {
-    id: "actions",
-    header: "Действия",
-    cell: () => (
-      <div className="flex items-center gap-1">
-        <Button disabled size="icon" title="Редактировать" variant="ghost">
-          <Pencil aria-hidden="true" />
-        </Button>
-        <Button disabled size="icon" title="Удалить" variant="ghost">
-          <Trash2 aria-hidden="true" />
-        </Button>
-      </div>
-    ),
-  },
-];
+function getColumns(
+  onEdit: (record: WorkLogResponseDto) => void,
+): ColumnDef<WorkLogResponseDto>[] {
+  return [
+    {
+      accessorKey: "performedAt",
+      header: "Дата",
+      cell: ({ row }) => formatDate(row.original.performedAt),
+    },
+    {
+      accessorFn: (row) => row.workType.name,
+      id: "workType",
+      header: "Вид работ",
+      cell: ({ row }) => row.original.workType.name,
+    },
+    {
+      accessorKey: "quantity",
+      header: "Количество",
+      cell: ({ row }) => formatQuantity(row.original.quantity),
+    },
+    {
+      accessorFn: (row) => row.workType.unit,
+      id: "unit",
+      header: "Ед.",
+      cell: ({ row }) => row.original.workType.unit,
+    },
+    {
+      accessorKey: "performer",
+      header: "Исполнитель",
+    },
+    {
+      accessorKey: "comment",
+      header: "Комментарий",
+      cell: ({ row }) => (
+        <span className="line-clamp-2 text-sm text-muted-foreground">
+          {row.original.comment || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Действия",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1">
+          <Button
+            onClick={() => onEdit(row.original)}
+            size="icon"
+            title="Редактировать"
+            type="button"
+            variant="ghost"
+          >
+            <Pencil aria-hidden="true" />
+          </Button>
+          <Button disabled size="icon" title="Удалить" variant="ghost">
+            <Trash2 aria-hidden="true" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+}
 
 export function WorkLogTable({
   records,
@@ -89,12 +100,13 @@ export function WorkLogTable({
   isLoading,
   isError,
   sortOrder,
+  onEdit,
   onRetry,
   onToggleSortOrder,
 }: WorkLogTableProps) {
   const table = useReactTable({
     data: records,
-    columns,
+    columns: getColumns(onEdit),
     getCoreRowModel: getCoreRowModel(),
   });
   const colSpan = table.getAllColumns().length;
@@ -102,7 +114,9 @@ export function WorkLogTable({
     ? "Загружаем записи журнала."
     : `${formatQuantity(total)} записей в текущей выборке.`;
   const sortLabel =
-    sortOrder === GetWorkLogsSortOrder.desc ? "Сначала новые" : "Сначала старые";
+    sortOrder === GetWorkLogsSortOrder.desc
+      ? "Сначала новые"
+      : "Сначала старые";
 
   return (
     <section className="rounded-lg border bg-card">
@@ -159,11 +173,17 @@ export function WorkLogTable({
                     <div className="mx-auto flex size-11 items-center justify-center rounded-md bg-destructive/10 text-destructive">
                       <AlertTriangle className="size-5" aria-hidden="true" />
                     </div>
-                    <p className="mt-4 font-medium">Не удалось загрузить журнал</p>
+                    <p className="mt-4 font-medium">
+                      Не удалось загрузить журнал
+                    </p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       Проверьте подключение к API и повторите запрос.
                     </p>
-                    <Button className="mt-4" onClick={onRetry} variant="outline">
+                    <Button
+                      className="mt-4"
+                      onClick={onRetry}
+                      variant="outline"
+                    >
                       <RefreshCw aria-hidden="true" />
                       Повторить
                     </Button>
@@ -177,7 +197,10 @@ export function WorkLogTable({
                   key={row.id}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td className="px-4 py-3 align-middle text-sm" key={cell.id}>
+                    <td
+                      className="px-4 py-3 align-middle text-sm"
+                      key={cell.id}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

@@ -95,6 +95,8 @@ The Work Journal page composes `AppLayout`, page header actions, `WorkLogSummary
 
 Creating a work log is handled by a feature-level dialog that reuses `WorkLogForm`. The form uses React Hook Form with a Zod schema for client-side validation, loads the work type dictionary from the API, shows the selected unit near the quantity field, and submits through the Orval-generated create mutation. Successful creation invalidates the work log list query and shows a toast notification.
 
+Editing uses the same `WorkLogForm` with existing record values passed as defaults. Row actions in the table open a controlled edit dialog, submit changes through the Orval-generated update mutation, invalidate the work log list, and show success or error toasts.
+
 Orval reads `http://localhost:3000/api/docs-json` and writes generated types, request functions, and TanStack Query hooks to `apps/web/src/shared/api/generated/work-journal-api.ts`. The OpenAPI document describes paths relative to the `/api` server, so the generated client works with `VITE_API_URL=http://localhost:3000/api`.
 
 The API uses Prisma for typed database access. The current database schema contains a `WorkType` dictionary table, a `WorkLog` table, and a `Unit` enum. Work logs reference work types by foreign key instead of storing duplicated work type names.

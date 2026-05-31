@@ -1,7 +1,11 @@
+import { useCallback, useState } from "react";
+
 import { CreateWorkLogDialog } from "@/features/create-work-log/create-work-log-dialog";
+import { EditWorkLogDialog } from "@/features/edit-work-log/edit-work-log-dialog";
 import {
   useGetWorkLogs,
   useGetWorkTypes,
+  type WorkLogResponseDto,
 } from "@/shared/api/generated/work-journal-api";
 import { WorkLogFilters } from "@/widgets/work-log-filters/work-log-filters";
 import { WorkLogSummary } from "@/widgets/work-log-summary/work-log-summary";
@@ -9,6 +13,9 @@ import { WorkLogTable } from "@/widgets/work-log-table/work-log-table";
 import { useWorkJournalSearch } from "./lib/use-work-journal-search";
 
 export function WorkJournalPage() {
+  const [editedWorkLog, setEditedWorkLog] = useState<WorkLogResponseDto | null>(
+    null,
+  );
   const {
     filters,
     hasActiveFilters,
@@ -20,6 +27,16 @@ export function WorkJournalPage() {
   const workLogsQuery = useGetWorkLogs(queryParams);
   const workTypesQuery = useGetWorkTypes();
   const workLogs = workLogsQuery.data?.items ?? [];
+
+  const handleEdit = useCallback((record: WorkLogResponseDto) => {
+    setEditedWorkLog(record);
+  }, []);
+
+  const handleEditOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setEditedWorkLog(null);
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -54,11 +71,20 @@ export function WorkJournalPage() {
       <WorkLogTable
         isError={workLogsQuery.isError}
         isLoading={workLogsQuery.isLoading}
+        onEdit={handleEdit}
         onRetry={() => void workLogsQuery.refetch()}
         onToggleSortOrder={toggleSortOrder}
         records={workLogs}
         sortOrder={filters.sortOrder}
         total={workLogsQuery.data?.total ?? 0}
+      />
+      <EditWorkLogDialog
+        isWorkTypesError={workTypesQuery.isError}
+        isWorkTypesLoading={workTypesQuery.isLoading}
+        onOpenChange={handleEditOpenChange}
+        open={Boolean(editedWorkLog)}
+        record={editedWorkLog}
+        workTypes={workTypesQuery.data ?? []}
       />
     </div>
   );
