@@ -27,6 +27,7 @@ type WorkLogTableProps = {
   isLoading: boolean;
   isError: boolean;
   sortOrder: GetWorkLogsSortOrder;
+  onDelete: (record: WorkLogResponseDto) => void;
   onEdit: (record: WorkLogResponseDto) => void;
   onRetry: () => void;
   onToggleSortOrder: () => void;
@@ -34,6 +35,7 @@ type WorkLogTableProps = {
 
 function getColumns(
   onEdit: (record: WorkLogResponseDto) => void,
+  onDelete: (record: WorkLogResponseDto) => void,
 ): ColumnDef<WorkLogResponseDto>[] {
   return [
     {
@@ -85,7 +87,14 @@ function getColumns(
           >
             <Pencil aria-hidden="true" />
           </Button>
-          <Button disabled size="icon" title="Удалить" variant="ghost">
+          <Button
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onDelete(row.original)}
+            size="icon"
+            title="Удалить"
+            type="button"
+            variant="ghost"
+          >
             <Trash2 aria-hidden="true" />
           </Button>
         </div>
@@ -100,13 +109,14 @@ export function WorkLogTable({
   isLoading,
   isError,
   sortOrder,
+  onDelete,
   onEdit,
   onRetry,
   onToggleSortOrder,
 }: WorkLogTableProps) {
   const table = useReactTable({
     data: records,
-    columns: getColumns(onEdit),
+    columns: getColumns(onEdit, onDelete),
     getCoreRowModel: getCoreRowModel(),
   });
   const colSpan = table.getAllColumns().length;

@@ -97,6 +97,8 @@ Creating a work log is handled by a feature-level dialog that reuses `WorkLogFor
 
 Editing uses the same `WorkLogForm` with existing record values passed as defaults. Row actions in the table open a controlled edit dialog, submit changes through the Orval-generated update mutation, invalidate the work log list, and show success or error toasts.
 
+Deleting is handled through a confirmation dialog opened from the table row action. The dialog shows the selected record summary, calls the Orval-generated delete mutation, invalidates the work log list, and confirms the result with toast notifications.
+
 Orval reads `http://localhost:3000/api/docs-json` and writes generated types, request functions, and TanStack Query hooks to `apps/web/src/shared/api/generated/work-journal-api.ts`. The OpenAPI document describes paths relative to the `/api` server, so the generated client works with `VITE_API_URL=http://localhost:3000/api`.
 
 The API uses Prisma for typed database access. The current database schema contains a `WorkType` dictionary table, a `WorkLog` table, and a `Unit` enum. Work logs reference work types by foreign key instead of storing duplicated work type names.

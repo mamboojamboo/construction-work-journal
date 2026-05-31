@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 
 import { CreateWorkLogDialog } from "@/features/create-work-log/create-work-log-dialog";
+import { DeleteWorkLogDialog } from "@/features/delete-work-log/delete-work-log-dialog";
 import { EditWorkLogDialog } from "@/features/edit-work-log/edit-work-log-dialog";
 import {
   useGetWorkLogs,
@@ -16,6 +17,8 @@ export function WorkJournalPage() {
   const [editedWorkLog, setEditedWorkLog] = useState<WorkLogResponseDto | null>(
     null,
   );
+  const [deletedWorkLog, setDeletedWorkLog] =
+    useState<WorkLogResponseDto | null>(null);
   const {
     filters,
     hasActiveFilters,
@@ -35,6 +38,16 @@ export function WorkJournalPage() {
   const handleEditOpenChange = useCallback((open: boolean) => {
     if (!open) {
       setEditedWorkLog(null);
+    }
+  }, []);
+
+  const handleDelete = useCallback((record: WorkLogResponseDto) => {
+    setDeletedWorkLog(record);
+  }, []);
+
+  const handleDeleteOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setDeletedWorkLog(null);
     }
   }, []);
 
@@ -71,6 +84,7 @@ export function WorkJournalPage() {
       <WorkLogTable
         isError={workLogsQuery.isError}
         isLoading={workLogsQuery.isLoading}
+        onDelete={handleDelete}
         onEdit={handleEdit}
         onRetry={() => void workLogsQuery.refetch()}
         onToggleSortOrder={toggleSortOrder}
@@ -85,6 +99,11 @@ export function WorkJournalPage() {
         open={Boolean(editedWorkLog)}
         record={editedWorkLog}
         workTypes={workTypesQuery.data ?? []}
+      />
+      <DeleteWorkLogDialog
+        onOpenChange={handleDeleteOpenChange}
+        open={Boolean(deletedWorkLog)}
+        record={deletedWorkLog}
       />
     </div>
   );
