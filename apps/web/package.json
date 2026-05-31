@@ -9,7 +9,8 @@
     "preview": "vite preview --host 0.0.0.0",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{ts,json}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "api:generate": "orval --config orval.config.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.1",
@@ -35,6 +36,7 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
+    "orval": "^7.3.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.1",

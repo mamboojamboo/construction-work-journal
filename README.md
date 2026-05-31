@@ -79,11 +79,19 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/construction_work_jou
 
 Use the same port in `DATABASE_URL` that Docker Compose exposes locally.
 
+Generate the frontend API client from the backend OpenAPI schema:
+
+```bash
+pnpm --filter web api:generate
+```
+
 ## Architecture Notes
 
 The frontend and backend are intentionally separate applications. The backend OpenAPI schema will be the source of truth for frontend API types and TanStack Query hooks via Orval.
 
 The frontend is a Vite React application under `apps/web`. It uses a practical feature-based folder structure with `app`, `pages`, `widgets`, `features`, `entities`, and `shared` layers. `AppProviders` wires TanStack Query and the toast provider around the application. The shared Axios instance reads `VITE_API_URL` and exposes `customInstance` for Orval.
+
+Orval reads `http://localhost:3000/api/docs-json` and writes generated types, request functions, and TanStack Query hooks to `apps/web/src/shared/api/generated/work-journal-api.ts`. The OpenAPI document describes paths relative to the `/api` server, so the generated client works with `VITE_API_URL=http://localhost:3000/api`.
 
 The API uses Prisma for typed database access. The current database schema contains a `WorkType` dictionary table, a `WorkLog` table, and a `Unit` enum. Work logs reference work types by foreign key instead of storing duplicated work type names.
 
@@ -108,4 +116,5 @@ pnpm build
 pnpm lint
 pnpm format
 pnpm typecheck
+pnpm --filter web api:generate
 ```

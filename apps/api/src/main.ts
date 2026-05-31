@@ -32,9 +32,12 @@ async function bootstrap() {
     .setTitle("Construction Work Journal API")
     .setDescription("API for tracking daily construction work log records.")
     .setVersion("0.1.0")
+    .addServer("/api")
     .build();
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  const document = SwaggerModule.createDocument(app, swaggerConfig, {
+    ignoreGlobalPrefix: true,
+  });
   SwaggerModule.setup("api/docs", app, document, {
     jsonDocumentUrl: "/api/docs-json",
     swaggerOptions: {
