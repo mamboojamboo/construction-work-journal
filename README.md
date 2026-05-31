@@ -4,10 +4,6 @@ A fullstack internal tool for tracking completed construction works on a job sit
 
 This repository is organized as a pnpm workspace with a separate Vite React frontend and NestJS API. The implementation will be built incrementally according to the assignment brief.
 
-## Status
-
-Step 2 is complete: the monorepo skeleton and minimal NestJS API are initialized.
-
 ## Planned Stack
 
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Query, TanStack Table, React Hook Form, Zod, Orval, Axios, date-fns.
@@ -50,9 +46,32 @@ API URLs:
 - Swagger UI: <http://localhost:3000/api/docs>
 - OpenAPI JSON: <http://localhost:3000/api/docs-json>
 
+Start PostgreSQL with Docker Compose:
+
+```bash
+docker compose up -d postgres
+```
+
+If local port `5432` is already in use, override it:
+
+```bash
+POSTGRES_PORT=5433 docker compose up -d postgres
+```
+
+Apply database migrations and seed work types:
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/construction_work_journal pnpm --filter api prisma:deploy
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/construction_work_journal pnpm --filter api db:seed
+```
+
+Use the same port in `DATABASE_URL` that Docker Compose exposes locally.
+
 ## Architecture Notes
 
 The frontend and backend are intentionally separate applications. The backend OpenAPI schema will be the source of truth for frontend API types and TanStack Query hooks via Orval.
+
+The API uses Prisma for typed database access. The current database schema contains a `WorkType` dictionary table, a `WorkLog` table, and a `Unit` enum. Work logs reference work types by foreign key instead of storing duplicated work type names.
 
 ## Useful Scripts
 
@@ -65,5 +84,3 @@ pnpm lint
 pnpm format
 pnpm typecheck
 ```
-
-Most scripts are placeholders until the corresponding applications are initialized in later steps.

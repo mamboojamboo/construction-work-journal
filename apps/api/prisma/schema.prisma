@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Unit {
+  M2
+  M3
+  M
+  PCS
+  HOUR
+  TON
+}
+
+model WorkType {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  unit      Unit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workLogs WorkLog[]
+}
+
+model WorkLog {
+  id          String   @id @default(uuid())
+  performedAt DateTime
+  quantity    Decimal  @db.Decimal(10, 2)
+  performer   String
+  comment     String?
+
+  workTypeId String
+  workType   WorkType @relation(fields: [workTypeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([performedAt])
+  @@index([workTypeId])
+}

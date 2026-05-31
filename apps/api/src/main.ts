@@ -5,8 +5,11 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 import { AppModule } from "./app.module";
+import { loadEnv } from "./config/load-env";
 
 async function bootstrap() {
+  loadEnv();
+
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix("api");
