@@ -1,20 +1,26 @@
 import { Plus } from "lucide-react";
 
 import {
-  GetWorkLogsSortBy,
-  GetWorkLogsSortOrder,
   useGetWorkLogs,
+  useGetWorkTypes,
 } from "@/shared/api/generated/work-journal-api";
 import { Button } from "@/shared/ui/button";
 import { WorkLogFilters } from "@/widgets/work-log-filters/work-log-filters";
 import { WorkLogSummary } from "@/widgets/work-log-summary/work-log-summary";
 import { WorkLogTable } from "@/widgets/work-log-table/work-log-table";
+import { useWorkJournalSearch } from "./lib/use-work-journal-search";
 
 export function WorkJournalPage() {
-  const workLogsQuery = useGetWorkLogs({
-    sortBy: GetWorkLogsSortBy.performedAt,
-    sortOrder: GetWorkLogsSortOrder.desc,
-  });
+  const {
+    filters,
+    hasActiveFilters,
+    queryParams,
+    resetFilters,
+    setFilters,
+    toggleSortOrder,
+  } = useWorkJournalSearch();
+  const workLogsQuery = useGetWorkLogs(queryParams);
+  const workTypesQuery = useGetWorkTypes();
   const workLogs = workLogsQuery.data?.items ?? [];
 
   return (
@@ -37,12 +43,22 @@ export function WorkJournalPage() {
       </section>
 
       <WorkLogSummary />
-      <WorkLogFilters />
+      <WorkLogFilters
+        filters={filters}
+        hasActiveFilters={hasActiveFilters}
+        isWorkTypesError={workTypesQuery.isError}
+        isWorkTypesLoading={workTypesQuery.isLoading}
+        onFiltersChange={setFilters}
+        onReset={resetFilters}
+        workTypes={workTypesQuery.data ?? []}
+      />
       <WorkLogTable
         isError={workLogsQuery.isError}
         isLoading={workLogsQuery.isLoading}
         onRetry={() => void workLogsQuery.refetch()}
+        onToggleSortOrder={toggleSortOrder}
         records={workLogs}
+        sortOrder={filters.sortOrder}
         total={workLogsQuery.data?.total ?? 0}
       />
     </div>

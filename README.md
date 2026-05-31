@@ -4,7 +4,7 @@ A fullstack internal tool for tracking completed construction works on a job sit
 
 This repository is organized as a pnpm workspace with a separate Vite React frontend and NestJS API.
 
-## Planned Stack
+## Stack
 
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Query, TanStack Table, React Hook Form, Zod, Orval, Axios, date-fns.
 - Backend: Node.js, NestJS, TypeScript, Prisma, PostgreSQL, Swagger/OpenAPI, class-validator, class-transformer.
@@ -91,7 +91,7 @@ The frontend and backend are intentionally separate applications. The backend Op
 
 The frontend is a Vite React application under `apps/web`. It uses a practical feature-based folder structure with `app`, `pages`, `widgets`, `features`, `entities`, and `shared` layers. `AppProviders` wires TanStack Query and the toast provider around the application. The shared Axios instance reads `VITE_API_URL` and exposes `customInstance` for Orval.
 
-The Work Journal page composes `AppLayout`, page header actions, `WorkLogSummary`, `WorkLogFilters`, and `WorkLogTable`. `WorkLogTable` uses TanStack Table and the Orval-generated `useGetWorkLogs` hook to render the current work log records. Filtering and interactive sorting will be connected in the next step.
+The Work Journal page composes `AppLayout`, page header actions, `WorkLogSummary`, `WorkLogFilters`, and `WorkLogTable`. `WorkLogFilters` keeps `dateFrom`, `dateTo`, `workTypeId`, and `performer` in URL search params, then passes them to the Orval-generated `useGetWorkLogs` hook. `WorkLogTable` uses TanStack Table for rendering and controls server-side `performedAt` sorting through the same URL-driven flow.
 
 Orval reads `http://localhost:3000/api/docs-json` and writes generated types, request functions, and TanStack Query hooks to `apps/web/src/shared/api/generated/work-journal-api.ts`. The OpenAPI document describes paths relative to the `/api` server, so the generated client works with `VITE_API_URL=http://localhost:3000/api`.
 

@@ -15,7 +15,10 @@ import {
   Trash2,
 } from "lucide-react";
 
-import type { WorkLogResponseDto } from "@/shared/api/generated/work-journal-api";
+import {
+  GetWorkLogsSortOrder,
+  type WorkLogResponseDto,
+} from "@/shared/api/generated/work-journal-api";
 import { Button } from "@/shared/ui/button";
 
 type WorkLogTableProps = {
@@ -23,7 +26,9 @@ type WorkLogTableProps = {
   total: number;
   isLoading: boolean;
   isError: boolean;
+  sortOrder: GetWorkLogsSortOrder;
   onRetry: () => void;
+  onToggleSortOrder: () => void;
 };
 
 const columns: ColumnDef<WorkLogResponseDto>[] = [
@@ -83,7 +88,9 @@ export function WorkLogTable({
   total,
   isLoading,
   isError,
+  sortOrder,
   onRetry,
+  onToggleSortOrder,
 }: WorkLogTableProps) {
   const table = useReactTable({
     data: records,
@@ -94,6 +101,8 @@ export function WorkLogTable({
   const subtitle = isLoading
     ? "Загружаем записи журнала."
     : `${formatQuantity(total)} записей в текущей выборке.`;
+  const sortLabel =
+    sortOrder === GetWorkLogsSortOrder.desc ? "Сначала новые" : "Сначала старые";
 
   return (
     <section className="rounded-lg border bg-card">
@@ -107,9 +116,15 @@ export function WorkLogTable({
             </p>
           </div>
         </div>
-        <Button variant="outline" disabled>
+        <Button
+          disabled={isLoading}
+          onClick={onToggleSortOrder}
+          title="Переключить сортировку по дате"
+          type="button"
+          variant="outline"
+        >
           <ArrowDownUp aria-hidden="true" />
-          Дата
+          {sortLabel}
         </Button>
       </div>
 
