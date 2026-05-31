@@ -40,6 +40,16 @@ Run the API in development mode:
 pnpm dev:api
 ```
 
+Run the frontend in development mode:
+
+```bash
+pnpm dev:web
+```
+
+Frontend URL:
+
+- Web app: <http://localhost:5173>
+
 API URLs:
 
 - Health: <http://localhost:3000/api/health>
@@ -72,6 +82,8 @@ Use the same port in `DATABASE_URL` that Docker Compose exposes locally.
 ## Architecture Notes
 
 The frontend and backend are intentionally separate applications. The backend OpenAPI schema will be the source of truth for frontend API types and TanStack Query hooks via Orval.
+
+The frontend is a Vite React application under `apps/web`. It uses a practical feature-based folder structure with `app`, `pages`, `widgets`, `features`, `entities`, and `shared` layers.
 
 The API uses Prisma for typed database access. The current database schema contains a `WorkType` dictionary table, a `WorkLog` table, and a `Unit` enum. Work logs reference work types by foreign key instead of storing duplicated work type names.
 
